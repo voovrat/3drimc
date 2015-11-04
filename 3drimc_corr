@@ -1,0 +1,29 @@
+#!/usr/bin/python
+
+
+def readfile(fname):
+  f=open(fname)
+  s=f.read()
+  f.close()
+  return s
+
+def readnumber(fname):
+  return float(readfile(fname))
+
+if __name__ == '__main__':
+
+  kB=1.3806504e-23 # % J/K
+  kcal_mol = 6.9477e-21 # J
+
+  rho=0.0333
+  kT=300*kB/kcal_mol
+  c0=-325
+  
+  HNC=readnumber('HNC.dat')
+  V = readnumber('V.dat')
+
+  P = rho*kT - 0.5*rho**2*kT*c0
+  F = HNC - P*V
+  f=open('solvation_energy_kT.dat','w')
+  f.write( str(F/kT) + '\n' )
+  f.close()

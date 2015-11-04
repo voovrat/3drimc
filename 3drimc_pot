@@ -1,0 +1,96 @@
+#!/usr/bin/python
+
+import sys
+from units import unit2unit
+from math import sqrt
+
+class RismFile:
+  def __init__(self,fname = ''):
+    self.clean()
+    if fname != '':
+      self.read(fname)
+
+  def __len__(self):
+    return len(self.x)
+
+  def __repr__(self):
+    s = ''
+    for i in range(len(self)):
+      s += str(self.x[i]) + ' ' + str(self.y[i]) + ' ' + str(self.z[i]) + ' ' + str(self.sigma[i]) + ' ' + str (self.epsilon[i]) + ' '+str(self.charge[i]) + '\n'
+    return s
+
+  def clean(self):
+    self.x = []
+    self.y = []
+    self.z = []
+    self.sigma = []
+    self.epsilon = []
+    self.charge = []
+    self.molid = []
+
+
+  def read(self,fname):
+  
+    f=open(fname)
+    lines=f.readlines()
+    f.close()
+  
+    self.clean()
+  
+    A2B = unit2unit( 'Angstr','Bohr')
+    K2H = unit2unit('kcal/mol','Hartree')
+  
+    for l in lines:
+      words = l.split()
+      self.x.append( float(words[0]) * A2B )
+      self.y.append( float(words[1]) * A2B )
+      self.z.append( float(words[2]) * A2B )
+      self.sigma.append( float(words[3]) * A2B )
+      self.epsilon.append( float(words[4]) * K2H )
+      self.charge.append( float(words[5]) )
+      
+      if len(words)==7:
+        self.molid.append( int(words[6]) )
+      else:
+        self.molid.append(0)
+
+
+if __name__ == '__main__':
+  
+  if len(sys.argv) <= 2: 
+    print 'usage: 3drimc_pot  system.rism[x] temperature'
+    print 'prints potential (in kT)'
+    quit()
+  
+  rism = RismFile( sys.argv[1])
+  T = float(sys.argv[2])
+  # print str(rism)
+ 
+  utot = 0
+
+  N = len(rism)
+  for i in range(N):
+    for j in range(i+1,N):
+   
+      if rism.molid[i] == rism.molid[j]:
+        continue
+
+      dx = rism.x[i] - rism.x[j]
+      dy = rism.y[i] - rism.y[j]
+      dz = rism.z[i] - rism.z[j]
+ 
+      r = sqrt( dx*dx + dy*dy + dz*dz )
+
+      sigma = 0.5*(rism.sigma[i] + rism.sigma[j])
+      epsilon = sqrt(rism.epsilon[i] * rism.epsilon[j] )
+      q12 = rism.charge[i] * rism.charge[j]
+
+      ucoul = q12 / r
+      ulj = 4*epsilon * ( (sigma/r)**12 - (sigma/r)**6 )  
+      utot += ucoul + ulj
+
+  kT = unit2unit('K','Hartree') * T  
+
+  print ( "%0.15f" % (utot/kT) )
+  
+      

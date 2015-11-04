@@ -1,0 +1,15 @@
+# maximal change of x,y, and z (in Angstoems)
+dl=1
+
+# maximal changes for angles (in degrees)
+dtheta=20 
+dphi =30 
+dpsi= 30
+ 
+#maximal and minimal values for the coordinates (Angstr)
+xmax = 11
+xmin = -11
+ymax = 11
+ymin = -11
+zmax = 11
+zmin = -11

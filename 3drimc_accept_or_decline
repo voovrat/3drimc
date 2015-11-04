@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import sys
+import random
+from math import exp
+
+if __name__ == '__main__':
+  
+  if len(sys.argv) <= 2:
+    print "usage: 3drimc_accept_or_decline  U_old U_new"
+    print " U_old U_new - energies ( in KT !!! ) "
+    print "returns 1 (accept) or 0 (decline)"
+    quit()
+
+  u_old = float(sys.argv[1])
+  u_new = float(sys.argv[2])
+
+  du = u_new - u_old
+  treshold = exp(-du)    # if du>0 -> treshold>1, for larger du - smaller treshold
+  trial = random.random() # 0..1
+
+  if trial < treshold:  
+    accept = 1
+  else: 
+    accept = 0
+
+  print str(accept)

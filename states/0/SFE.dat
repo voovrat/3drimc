@@ -1,0 +1,9 @@
+prefix = [system_in_water_]
+Parameters =  [system_in_water_parameters.txt]
+AdditionalParameters = []
+SIZES  =86 x 70 x 76 
+SPACING = 0.944863 ,0.944863, 0.944863 
+HNC: -401.043627 [kcal/mol]
+KH: -421.668453 [kcal/mol]
+GF: -442.724484 [kcal/mol]
+VUA: 313.083159 [Angstr^3]

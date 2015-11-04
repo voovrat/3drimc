@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+
+import sys
+import random
+import string
+import math
+import os
+
+
+def readlines(fname):
+  f = open(fname)
+  linesZ = f.readlines()
+  f.close()
+  lines = [ lineZ[:-1] for lineZ in linesZ ]
+  return lines
+
+def read_XYZPhThPs(fname):
+  lines=readlines(fname)
+  coorlist=[]
+  for l in lines:
+    coors = [ float(w) for w in l.split() ]
+    coorlist.append(coors)
+  return coorlist
+
+def read_params(fname):
+  lines=readlines(fname)
+  prm={}
+  for l in lines:
+    comment_parts = l.split('#')
+    if len(comment_parts) == 0:
+       continue
+    nocomments= comment_parts[0]
+    #
+    namval = nocomments.split('=')
+    if len(namval) == 1:
+       continue
+    nam = string.strip(namval[0])
+    try:
+      val = float(namval[1])
+    except:
+      val = string.strip(namval[1])
+    prm[nam] = val  
+    #
+  return prm 
+    
+
+if __name__ == '__main__':
+
+  if len(sys.argv)<=3:
+    print "usage: 3drimc_move params oldstate newstate" 
+    print "   folders oldstate and newstate should contain"
+    print "       - mollist.txt"
+    print "       - molecule.XYZPhThPs files ( one per molecule)"
+    quit()
+
+  params = read_params( sys.argv[1] )
+  oldstate = sys.argv[2]
+  newstate = sys.argv[3]
+
+  moltab = []  # list of pairs, (mol,[coors])
+
+  tabs_per_mol = {} # for each molecule : (ifirst, coorlist)
+                    # where ifirst is the place where the molecule starts in moltab
+  ifirst = 0
+
+  mollist=readlines(oldstate + '/mollist.txt')
+  for mol in mollist:
+     coorlist=read_XYZPhThPs(oldstate + '/' + mol + '.XYZPhThPs')
+     moltab += [ (mol,coors) for coors in coorlist ]  
+     tabs_per_mol[mol] = (ifirst,coorlist) 
+     ifirst = len(moltab)
+
+  Nmol = len(moltab)
+  imol = int(random.random() * Nmol)
+  mol,xyzptp = moltab[imol];
+  ifirst,coorslist = tabs_per_mol[mol];  
+  ilocal = imol - ifirst;
+
+#  print 'imol=' + str(imol) + ' mol=' + mol +' ifirst='+str(ifirst) + ' ilocal=' + str(ilocal)
+ 
+
+ 
+  maxdl = params['dl']
+  x0 = xyzptp[0]
+  y0 = xyzptp[1]
+  z0 = xyzptp[2]
+  
+  xmin = params['xmin']
+  xmax = params['xmax']
+  
+  ymin = params['ymin']
+  ymax = params['ymax']
+
+  zmin = params['zmin']
+  zmax = params['zmax']
+
+ 
+
+  while True:
+
+    # rx,ry,rz - radius vector, rx,ry,rz in -1..1
+    rx = 2*random.random() - 1
+    ry = 2*random.random() - 1
+    rz = 2*random.random() - 1 
+
+    r = math.sqrt(rx*rx + ry*ry + rz*rz )
+
+    dl = random.random() * maxdl
+
+    dx = rx/r * dl
+    dy = ry/r * dl
+    dz = rz/r * dl
+
+    x1 = x0 + dx
+    y1 = y0 + dy
+    z1 = z0 + dz
+
+    if x1 > xmin and x1 < xmax and y1>ymin and y1<ymax and z1>zmin and z1<zmax:
+       break
+
+#  print str(x1) + ' ' + str(y1) + ' '+str(z1)
+
+  dph = (2*random.random()-1) * params['dphi'] 
+  dth = (2*random.random()-1) * params['dtheta']
+  dps = (2*random.random()-1) * params['dpsi']
+
+  ph0 = xyzptp[3] / 180 * math.pi
+  th0 = xyzptp[4] / 180 * math.pi
+  ps0 = xyzptp[5] / 180 * math.pi
+
+  ph = ( (xyzptp[3] + dph) % 360 ) / 180 * math.pi
+  th = ( (xyzptp[4] + dth) % 360 ) / 180 * math.pi
+  ps = ( (xyzptp[5] + dps) % 360 ) / 180 * math.pi
+
+#  print 'ph' + str(ph) + ' th'+  str(th) + ' ps'+str(ps)
+
+  rotate_only = bool( int (random.random() * 2) );
+
+  if rotate_only:  # rotate
+     coorslist[ilocal] = [ x0, y0, z0, ph, th, ps ]
+  else:  # move only
+     coorslist[ilocal] = [ x1, y1, z1, ph0, th0, ps0 ]
+
+#  print str(coorslist)
+  
+  os.system('cp ' + oldstate + '/* ' + newstate )
+
+  f=open(newstate + '/' + mol +'.XYZPhThPs','w')
+  for coors in coorslist:
+    f.write("%20.15f %20.15f %20.15f %20.15f %20.15f %20.15f\n" % (coors[0],coors[1],coors[2],coors[3],coors[4],coors[5]) )
+  f.close()
+
+ 
+

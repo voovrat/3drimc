@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+
+  echo "usage: 3drimc_calc_total_energy system.rismx"
+  exit
+fi
+
+3drimc_run  $1 > /dev/null
+3drimc_corr 
+3drimc_pot $1 300 > potential_energy_kT.dat
+
+E_solv=$(cat solvation_energy_kT.dat)
+U_pot=$(cat potential_energy_kT.dat)
+
+E_tot=$(echo "print  $E_solv + ( $U_pot ) " | python )
+
+echo $E_tot > total_energy_kT.dat

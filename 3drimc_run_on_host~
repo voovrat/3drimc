@@ -1,0 +1,149 @@
+#!/bin/bash
+
+if [ $# -lt 4 ]; then
+
+  echo Usage:  3drimc_run_on_host host_folder states rismmol_files NSteps nlast '[ ntry ]'
+  echo nlast - which number of last steps to concider for generation of the new configuration
+  echo  ntry - number of tries to get a free conf. 10 - default
+  exit
+fi
+
+host=$(3drimc_realpath $1)
+hostname=$(echo $host | gawk -F/ '{print $NF}')
+
+
+mkdir -p $host/oldstate
+mkdir -p $host/newstate
+mkdir -p $host/results
+
+states=$(3drimc_realpath $2)
+rismmol_files=$(3drimc_realpath $3)
+NSteps=$4
+nlast=$5
+
+if [ $# -ge 6 ]; then
+  ntry=$6
+else
+  ntry=10
+fi
+
+cp rismmol_files/* $host
+cp 3drimc_move.prm $host
+cd $host
+
+while [ 1 == 1 ]; 
+do
+
+  if [ -f istep.dat ]; then
+     istep=$(cat istep.dat)
+  else
+     istep=0
+  fi
+  
+  if [ $istep -gt $NSteps ]; then
+    echo '***' DONE! '***'
+    exit
+  else
+    echo '***' Step $istep '***'
+  fi
+
+  # *** fill states array 
+
+  LastStates=$(ls $states | sort -n | tail -n $nlast )
+  declare -a stateArr
+  
+  nstates=0
+  for state in $LastStates 
+  do
+    stateArr[$nstates]=$state
+    nstates=$((nstates+1))    
+  done
+
+
+  # **** find the state which is ready to use (i.e. there is file "ready_to_use in it)
+  for(( itry=0; itry<$ntry; itry++))
+  do
+    istate=$(myrand $nstates)
+    state=${stateArr[$istate]}
+
+   # set inuse marker to deny cleaner to delete the state while we are using it
+    touch $states/$state/inuse.$hostname
+   
+    RDY=$( ls $states/$state | grep ready_to_use | wc -l )
+    if [ $RDY == 1 ]; then
+      break
+    fi 
+
+   # *** if state is not ready: clear inuse marker to allow cleaner to delete the state
+    rm -f $states/$state/inuse.$hostname
+
+  done
+  
+  # if all the states which we tried are not ready --> something is wrong
+  if [ $RDY == 0 ]; then
+     echo $host: no ready states found. Something goes wrong. Stop. 
+     exit
+  fi
+ 
+  # if the state is ready --> create a new configuration from it, and store the results in the host folder
+
+  echo "current state folder:" $states/$state
+
+  rm -f $host/oldstate/*
+  rm -f $host/newstate/*
+  cp $states/$state/* $host/oldstate
+  3drimc_move 3drimc_move.prm $host/oldstate $host/newstate
+
+  # *** clear inuse marker, to allow the cleaner to delete the state after some time
+  rm -f states/$state/inuse.$hostname
+
+
+  # get the "real" host name (without the thread suffix )
+  #hostname=$(cat hosts/$host/hostname.txt )
+  #user=$(cat hosts/$host/user)
+
+  # build the system
+ echo "rimc_build_the_system('$host/newstate','$host/system')" > octave.cmd
+
+octave -q octave.cmd
+
+  # run the system on remote host
+  # don't need to copy anything, provided we have a nfs
+  #scp hosts/$host/system.rismx  $user@$hostname:~/3drimc_tmp
+  #ssh $user:$hostname '3drimc_calc_total_energy system.rism'
+  #scp -r $user:$hostname:~/3drimc_tmp/results hosts/$host
+
+#  cd hosts/$host
+  3drimc_calc_total_energy system.rismx
+    
+
+  # get the energies
+  U_old=$(cat $host/oldstate/total_energy_kT.dat)
+  U_new=$(cat total_energy_kT.dat)
+
+  # accept or decline
+  A=$(3drimc_accept_or_decline   $U_old $U_new )
+  
+
+  if [ $A == 1 ]; then
+    
+  # create a new state
+  tic=$(statdate +%s)
+  newstate=$tic.$host
+  
+  mkdir states/$newstate
+  touch states/$newstate/inuse.$hostname
+  cp hosts/$host/newstate/* states/$newstate
+  cp hosts/$host/total_energy_kT.dat states/$newstate
+  touch states/$newstate/ready_to_use
+  rm -f states/$newstate/inuse.$hostname
+
+   
+  fi 
+
+
+ # *** go to the next step (and save it in the file) 
+  istate=$((istate+1))
+  echo $istate > hosts/$host/istate.dat
+
+done

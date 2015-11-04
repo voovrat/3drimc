@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+
+  echo 'usage:  3drimc_prepare_host hosts_folder host_name'
+  exit
+fi
+
+hostfolder=$1
+hostname=$2
+
+mkdir -p $hostfolder/$hostname
+
+mkdir -p $hostfolder/oldstate
+mkdir -p $hostfolder/newstate
