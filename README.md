@@ -4,6 +4,7 @@ Requirements:
   - python
   - octave
   - RISM-MOL-Tools ( github.com/voovrat/RISM-MOL-Tools )
+  - voovrat-utils ( github.com/voovrat/voovrat-utils ) 
 
 install:
 
