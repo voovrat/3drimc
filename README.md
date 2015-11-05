@@ -21,6 +21,15 @@ install:
    - compile 3drimc_realpath: 
           
         gcc -o 3drimc_realpath 3drimc_realpath.c
+   
+   - check that you have compiled myrand in voovrat-utils
+   
+     cd path-to-voovrat-utils
+
+     gcc -o myrand myrand.c
+     
+    cd path-to-3drimc
+
 
    - create "hosts"
    - 
