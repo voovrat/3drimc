@@ -1,17 +1,38 @@
 3drimc : 3DRISM MC code
 
+Requirements:
+  - python
+  - octave
+  - RISM-MOL-Tools ( github.com/voovrat/RISM-MOL-Tools )
+  - voovrat-utils ( github.com/voovrat/voovrat-utils ) 
+
 install:
 
    - download
-   - setup path:
+   - setup paths:
+     
          export PATH=$PATH:$(pwd)
+
          echo 'export PATH=$PATH:'$(pwd) >> ~/.bashrc
+         
+         echo "path(path,'"$(pwd)"');" >> ~/.octaverc
+
 
    - compile 3drimc_realpath: 
           
         gcc -o 3drimc_realpath 3drimc_realpath.c
+   
+   - check that you have compiled myrand in voovrat-utils
+   
+     cd path-to-voovrat-utils
+
+     gcc -o myrand myrand.c
+     
+    cd path-to-3drimc
+
 
    - create "hosts"
+   - 
         mkdir hosts
         mkdir hosts/proc1
         ...
