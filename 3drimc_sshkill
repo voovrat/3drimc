@@ -1,0 +1,27 @@
+#!/bin/bash
+
+
+if [ $# -lt 3 ]; then
+
+  echo "usage:  3drimc_sshrun  host-prefix first_host  last_host   > kill_em_all.sh "
+  echo "   ./kill_em_all.sh"
+  echo " for example: 3drimc_sshrun  sr3  1 9  "
+  echo " kill on hosts sr31..sr39, "
+  exit  
+
+fi
+
+prefix=$1
+first=$2
+last=$3
+nproc=$4
+
+
+for((ihost=$first;ihost<=$last;ihost++))
+do
+   host=${prefix}${ihost}
+
+     echo ssh $host '"'killall 3drimc_run_on_hostX\; killall multiGridMain'"' 
+
+
+done

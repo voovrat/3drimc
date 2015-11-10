@@ -1,0 +1,27 @@
+#!/bin/bash
+
+
+if [ $# -lt 1 ]; then
+
+  echo "usage:  3drimc_localrun   nproc > run_em_all.sh "
+  echo "   ./run_em_all.sh"
+  echo " for example: 3drimc_sshrun   4"
+  echo " run on  4 procs"
+  exit  
+
+fi
+
+nproc=$1
+
+
+
+   for((iproc=1; iproc<=$nproc; iproc++))  
+   do
+     folder=hosts/localhost.proc${iproc}
+     mkdir -p $folder
+
+     echo  3drimc_run_on_host $folder states rismmol_files 10000 40 '>/dev/null 2>/dev/null &'
+
+  done
+
+

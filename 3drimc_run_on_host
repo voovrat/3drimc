@@ -67,7 +67,7 @@ do
     state=${stateArr[$istate]}
 
    # set inuse marker to deny cleaner to delete the state while we are using it
-    touch $states/$state/inuse.$hostname
+#    touch $states/$state/inuse.$hostname
    
     RDY=$( ls $states/$state | grep ready_to_use | wc -l )
     if [ $RDY == 1 ]; then
@@ -75,7 +75,7 @@ do
     fi 
 
    # *** if state is not ready: clear inuse marker to allow cleaner to delete the state
-    rm -f $states/$state/inuse.$hostname
+#    rm -f $states/$state/inuse.$hostname
 
   done
   
@@ -104,7 +104,7 @@ do
   3drimc_move 3drimc_move.prm $host/oldstate $host/newstate
 
   # *** clear inuse marker, to allow the cleaner to delete the state after some time
-  rm -f states/$state/inuse.$hostname
+#  rm -f states/$state/inuse.$hostname
 
 
   # get the "real" host name (without the thread suffix )

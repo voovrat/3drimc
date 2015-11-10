@@ -1,0 +1,34 @@
+#!/bin/bash
+
+
+if [ $# -lt 4 ]; then
+
+  echo "usage:  3drimc_sshrun  host-prefix first_host  last_host  nproc > run_em_all.sh "
+  echo "   ./run_em_all.sh"
+  echo " for example: 3drimc_sshrun  sr3  1 9  4"
+  echo " run on hosts sr31..sr39, 4 procs per host"
+  exit  
+
+fi
+
+prefix=$1
+first=$2
+last=$3
+nproc=$4
+
+
+for((ihost=$first;ihost<=$last;ihost++))
+do
+   host=${prefix}${ihost}
+
+   for((iproc=1; iproc<=$nproc; iproc++))  
+   do
+     folder=hosts/${host}.proc${iproc}
+     mkdir -p $folder
+
+     echo ssh $host '"'cd 3drimc\; 3drimc_run_on_hostX $folder states rismmol_files 10000 10'"' '>/dev/null 2>/dev/null &'
+
+  done
+
+
+done
