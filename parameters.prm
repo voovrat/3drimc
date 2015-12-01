@@ -1,0 +1,5 @@
+frames_file = frames.dat
+traj_file = traj.moltraj
+output_nbytes_xyz = 2
+output_nbytes_ang = 2
+

@@ -1,0 +1,1 @@
+cd 3drimc; 3drimc_run_on_hostX hosts/sr31.1 states rismmol_files 10 10

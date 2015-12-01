@@ -1,0 +1,18 @@
+#!/bin/bash
+
+3drimc_traj
+
+cat > sys.composition <<EOL
+2
+Na.mol 2
+ortoHB.mol 2
+EOL
+
+3drimc_traj2bin
+
+cat >parameters.prm <<EOL
+ frames_file = frames.dat
+ traj_file = traj.moltraj
+ output_nbytes_xyz = 2
+ output_nbytes_ang = 2
+EOL

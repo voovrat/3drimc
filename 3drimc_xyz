@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#rm -f traj.moltraj
+#touch traj.moltraj
+
+mkdir -p xyz
+
+ifram=1
+BoxLength=22
+for f in $(ls states)
+do
+
+  echo $ifram : $f 
+  #cat states/$f/Na.XYZPhThPs states/$f/ortoHB.XYZPhThPs > traj/${ifram}.moltext
+  octave -q --eval "rimc_build_the_system('states/$f','xyz/$ifram');" >/dev/null
+  #moltab_text2bin tmp.moltext tmp.moltab
+  #mv traj.moltraj a.moltraj
+  #cat a.moltraj tmp.moltab > traj.moltraj
+  ifram=$((ifram+1))
+
+done

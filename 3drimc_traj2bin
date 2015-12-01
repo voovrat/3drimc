@@ -1,0 +1,24 @@
+#!/bin/bash
+
+rm -f traj.moltraj
+rm -f frames.dat
+
+touch traj.moltraj
+touch frames.dat
+
+
+ifram=1
+for f in $(ls traj)
+do
+
+  echo $ifram $(stat -c%s traj.moltraj)
+ 
+  moltab_text2bin sys.composition traj/$f 22 tmp.moltab >/dev/null
+  mv traj.moltraj tmp.moltraj
+  cat tmp.moltraj tmp.moltab > traj.moltraj
+  rm -f tmp.moltraj
+
+  echo $ifram 22 0 0 0 0 0 0 $ifram >> frames.dat
+  ifram=$((ifram+1))
+
+done

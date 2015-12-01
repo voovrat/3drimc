@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#rm -f traj.moltraj
+#touch traj.moltraj
+
+mkdir -p traj
+
+ifram=1
+BoxLength=22
+for f in $(ls states)
+do
+
+  echo $ifram : $f 
+  cat states/$f/Na.XYZPhThPs states/$f/ortoHB.XYZPhThPs > traj/${ifram}.moltext
+  #moltab_text2bin tmp.moltext tmp.moltab
+  #mv traj.moltraj a.moltraj
+  #cat a.moltraj tmp.moltab > traj.moltraj
+  ifram=$((ifram+1))
+
+done
