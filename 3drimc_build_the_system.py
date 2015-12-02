@@ -1,70 +1,32 @@
 import sys
 import lmpdriver 
 from math import sin,cos
-
-def readlines(fname):
-  f = open(fname)
-  lines = f.readlines()
-  f.clsoe()
-  return [ l[:-1] for l in lines ]
-
-
-def getMatrix(lines):
-  m=len(lines)
-  matrix=[]
-  for l in lines:
-     matrix.append( [ float(w) for w in l.split() ])
-  return matrix
-
-
-def mmul(A,B):  # matrix multiplication
-  C = []
-  for i in range(nlin(A)):
-    C.append([])
-    for j in range(ncol(B)):
-      S = 0
-      for k in range(ncol(A)):
-        S += A[i][k] * B[k][j]
-      C[i].append(S)
-  return C   
-
-def mmulx( Alist ):
-  return reduce( mmul, Alist) 
-
-"""
-  minor M(I,J), I,J = ranges
-"""
-def submatrix(M,I,J):
-  S = []
-  for i in I:
-    S.append( [ M[i][j] for j in J ])
-  return S
-
-def nllin(A):
-  return len(A)
-
-def ncol(A):
-  return len(A[0])
+from mymatrix import *
 
 if __name__ == '__main__':
 
 
   if len(sys.argv)<3: 
-    echo 'usage: 3drimc_build_the_system folder output'
-    echo '  the folder should contain:   '
-    echo '       mollist.txt (list of molecule names)'
-    echo '       for each molecule in mollist.txt - molecule.xyz and molecule.rismx'
-    echo '       for each molecule - mol.XYZPhThPs file'
+    print """
+usage: 3drimc_build_the_system folder output
+
+   the folder should contain:   
+     mollist.txt (list of molecule names)
+     for each molecule in mollist.txt - molecule.xyz and molecule.rismx
+     for each molecule - mol.XYZPhThPs file"""
     quit()
 
-  mol_list = readlines( folder '/mollist.txt')
+  folder = sys.argv[1]
+  output = sys.argv[2]
+
+  mol_list = readlines( folder + '/mollist.txt')
   Ntyp = len(mol_list);
 
   XYZPhThPs_list = []
 
   for mol in mol_list:
     XYZPhThPs = getMatrix( readlines( folder +'/'+ mol +'.XYZPhThPs' ));
-    XYZPhThPs_list += XYZPhThPs;
+    XYZPhThPs_list.append(XYZPhThPs);
 
 
   XYZ =  [ [] for i in range(Ntyp) ]
@@ -90,6 +52,8 @@ if __name__ == '__main__':
   molid_all = []
 
   molid = 1;
+
+#  print XYZPhThPs_list
 
   for ityp in range(Ntyp):
 
@@ -117,34 +81,41 @@ if __name__ == '__main__':
 
       dxdydz = XYZPhThPs_list[ityp][i][0:3];
 
-      XYZbb = (Rot*XYZ{ityp}')' + ones(Nat(ityp),1)*dxdydz ;
-
-      XYZ_all = [ XYZ_all; XYZbb ];
-      at_all = [at_all;at{ityp}];
-      seq_all = [seq_all; seq{ityp}];
       
-      molid_all = [ molid_all; molid*ones(Nat(ityp),1) ];
+      XYZbb = madd( transp( mmul(Rot,  transp(XYZ[ityp]) ) ), \
+                    linrep(dxdydz, Nat[ityp]) );
 
-      molid = molid + 1;
+      XYZ_all += XYZbb
+      at_all += at[ityp]
+      seq_all += seq[ityp]
+      
+      molid_all += [ molid for i in range(Nat[ityp]) ] 
+      molid += 1
 
-  end
-end
+  fout = lmpdriver.XYZ() 
+  fout.atoms = at_all
+  fout.x = transp(XYZ_all)[0]
+  fout.y = transp(XYZ_all)[1]
+  fout.z = transp(XYZ_all)[2]
 
-write_xyz(at_all,XYZ_all,[ output '.xyz' ]);
+  fout.write( output +'.xyz')
 
-RISM_all = [ XYZ_all seq_all molid_all ];
+  RISM_all = colcat( [XYZ_all, seq_all, colvec(molid_all) ] )
 
-%eval([ 'save -ascii ' output '.rism RISM_all ' ]);
+#%eval([ 'save -ascii ' output '.rism RISM_all ' ]);
 
-f=fopen([ output '.rismx' ],'w');
+  print RISM_all
+  print 'XYZ_all='+str(XYZ_all)
+  print 'seq_all='+str(seq_all)
+  print 'molid_all='+str(molid_all)
 
-NN = size(RISM_all,1)
+  f=open( output +'.rismx' ,'w');
 
-for i=1:NN
+  for lin in RISM_all:
+    f.write('%20.15f %20.15f %20.15f %20.15f %20.15f %20.15f %0.0f\n' % \
+        (lin[0],lin[1],lin[2],lin[3],lin[4],lin[5],lin[6])  ); 
+  f.close();
 
-  fprintf(f,'%20.15f %20.15f %20.15f %20.15f %20.15f %20.15f %0.0f\n',RISM_all(i,1),RISM_all(i,2),RISM_all(i,3),RISM_all(i,4),RISM_all(i,5),RISM_all(i,6), RISM_all(i,7));
-
-end
 
 
 
